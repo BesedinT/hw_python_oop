@@ -98,7 +98,7 @@ class SportsWalking(Training):
         duration_minutes = self.duration * 60  # Переводим время в минуты
         spent_calories = ((coeff_callorie_3 * self.weight
                           + (self.get_mean_speed() ** coeff_callorie_4
-                          // self.height) * coeff_callorie_5 * self.weight)
+                             // self.height) * coeff_callorie_5 * self.weight)
                           * duration_minutes)
         return spent_calories
 
@@ -137,10 +137,10 @@ class Swimming(Training):
 def read_package(workout_type: str, data: list) -> Training:
     """Получаем данные полученные от датчиков."""
     trainings: dict[str, training] = {
-                    'SWM': Swimming,
-                    'RUN': Running,
-                    'WLK': SportsWalking
-                     }
+        'SWM': Swimming,
+        'RUN': Running,
+        'WLK': SportsWalking
+    }
     return trainings[workout_type](*data)
 
 
