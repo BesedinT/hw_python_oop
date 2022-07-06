@@ -1,6 +1,5 @@
-import dataclasses
 from typing import Dict, Type
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 
 @dataclass
@@ -13,21 +12,21 @@ class InfoMessage:
     speed: float
     calories: float
 
-    MESSAGE = ('Тип тренировки: {training_type}; '
-               'Длительность: {duration:.3f} ч.; '
-               'Дистанция: {distance:.3f} км; '
-               'Ср. скорость: {speed:.3f} км/ч; '
-               'Потрачено ккал: {calories:.3f}.')
+    MESSAGE: str = ('Тип тренировки: {training_type}; '
+                    'Длительность: {duration:.3f} ч.; '
+                    'Дистанция: {distance:.3f} км; '
+                    'Ср. скорость: {speed:.3f} км/ч; '
+                    'Потрачено ккал: {calories:.3f}.')
 
     def get_message(self) -> str:
-        return self.MESSAGE.format(**dataclasses.asdict(self))
+        return self.MESSAGE.format(**asdict(self))
 
 
 class Training:
     """Базовый класс тренировки."""
 
-    M_IN_KM: int = 1000
-    HOUR_IN_MUNUTES: int = 60
+    M_IN_KM: float = 1000
+    HOUR_IN_MUNUTES: float = 60
     LEN_STEP: float = 0.65  # Длина одного шага
 
     def __init__(self,
@@ -62,8 +61,8 @@ class Training:
 class Running(Training):
     """Тренировка: бег."""
 
-    COEFF_MEAN_SPEED_1: int = 18  # Коэффициент средней скорости 1
-    COEFF_MEAN_SPEED_2: int = 20  # Коэффициент средней скорости 2
+    COEFF_MEAN_SPEED_1: float = 18  # Коэффициент средней скорости 1
+    COEFF_MEAN_SPEED_2: float = 20  # Коэффициент средней скорости 2
 
     def get_spent_calories(self) -> float:
         """Получаем количество затраченных калорий."""
@@ -75,7 +74,7 @@ class Running(Training):
 class SportsWalking(Training):
     """Тренировка: спортивная ходьба."""
 
-    COEFF_MEAN_SPEED: int = 2  # Коэффициент средней скорости
+    EXP_MEAN_SPEED: float = 2  # " Экспонента средней скорости
     COEFF_WEIGHT_1: float = 0.035  # Коэффициент веса 1
     COEFF_WEIGHT_2: float = 0.029  # Коэффициент веса 2
 
@@ -83,7 +82,7 @@ class SportsWalking(Training):
                  action: int,
                  duration: float,
                  weight: float,
-                 height: int
+                 height: float
                  ) -> None:
         super().__init__(action, duration, weight)
         self.height = height
@@ -91,7 +90,7 @@ class SportsWalking(Training):
     def get_spent_calories(self) -> float:
         """Получаем количество затраченных калорий."""
         return ((self.COEFF_WEIGHT_1 * self.weight + (self.get_mean_speed()
-                ** self.COEFF_MEAN_SPEED // self.height) * self.COEFF_WEIGHT_2
+                ** self.EXP_MEAN_SPEED // self.height) * self.COEFF_WEIGHT_2
                 * self.weight) * self.duration * self.HOUR_IN_MUNUTES)
 
 
@@ -100,14 +99,14 @@ class Swimming(Training):
 
     LEN_STEP: float = 1.38  # Длина одного гребка
     COEFF_MEAN_SPEED: float = 1.1  # Коэффициент средней скорости
-    COEFF_WEIGHT: int = 2  # Коэффициент веса
+    COEFF_WEIGHT: float = 2  # Коэффициент веса
 
     def __init__(self,
                  action: int,
                  duration: float,
                  weight: float,
-                 length_pool: int,
-                 count_pool: int
+                 length_pool: float,
+                 count_pool: float
                  ) -> None:
         super().__init__(action, duration, weight)
         self.length_pool = length_pool
@@ -126,14 +125,14 @@ class Swimming(Training):
 
 def read_package(workout_type: str, data: list) -> Training:
     """Получаем данные полученные от датчиков."""
-    types_trainings: Dict[str, Type[workout_type]] = {
+    types_trainings: Dict[str, Type[Training]] = {
         'SWM': Swimming,
         'RUN': Running,
         'WLK': SportsWalking
     }
-    if workout_type in types_trainings:
-        return types_trainings[workout_type](*data)
-    raise KeyError('Тип тренировки не определен')
+    if workout_type not in types_trainings:
+        raise ValueError(f'Тип тренировки "{workout_type}" не определен')
+    return types_trainings[workout_type](*data)
 
 
 def main(training: Training) -> None:
